@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_toastr/flutter_toastr.dart'; // Toast import
 
 import '../config/environment.dart';
 import 'intro_page.dart';
 import 'settings_page.dart';
 import 'login_page.dart';
 import 'add_location_page.dart';
-import 'volunteer_locations_page.dart'; // Import the new page
+import 'volunteer_locations_page.dart';
 
 class FoodDonationPage extends StatefulWidget {
   @override
@@ -45,12 +46,47 @@ class _FoodDonationPageState extends State<FoodDonationPage> {
     }
   }
 
-  void bookFood(int index) {
-    setState(() {
-      foodList[index]['status'] = 'BOOKED';
-      bookedCount += 1;
-      pendingCount -= 1;
-    });
+  Future<void> bookFood(int index) async {
+    final foodId = foodList[index]['foodId'];
+
+    final response = await http.put(
+      Uri.parse('${Environment.baseUrl}/updateDonationStatus/$foodId'),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['code'] == 'SUCCESS') {
+        setState(() {
+          foodList[index]['status'] = 'BOOKED';
+          bookedCount += 1;
+          pendingCount -= 1;
+        });
+
+        FlutterToastr.show(
+          "Donation status updated to Booked.",
+          context,
+          duration: FlutterToastr.lengthShort,
+          position: FlutterToastr.bottom,
+          backgroundColor: Colors.green,
+        );
+      } else {
+        FlutterToastr.show(
+          "Failed to book donation.",
+          context,
+          duration: FlutterToastr.lengthShort,
+          position: FlutterToastr.bottom,
+          backgroundColor: Colors.red,
+        );
+      }
+    } else {
+      FlutterToastr.show(
+        "Error: Could not update donation status.",
+        context,
+        duration: FlutterToastr.lengthShort,
+        position: FlutterToastr.bottom,
+        backgroundColor: Colors.red,
+      );
+    }
   }
 
   void _onBottomNavTap(int index) {
