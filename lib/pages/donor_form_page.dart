@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/environment.dart';
+import 'intro_page.dart';     // Make sure path is correct
+import 'login_page.dart';     // Make sure path is correct
+import 'settings_page.dart';  // <-- Add this import
 
 class DonorFormPage extends StatefulWidget {
   final String email;
@@ -134,21 +137,27 @@ class _DonorFormPageState extends State<DonorFormPage> {
                       decoration: whiteInputDecoration("Location"),
                       style: TextStyle(color: Colors.white),
                       validator: (value) =>
-                      value == null || value.trim().isEmpty ? "Location is required" : null,
+                      value == null || value.trim().isEmpty
+                          ? "Location is required"
+                          : null,
                     ),
                     TextFormField(
                       controller: amountController,
                       decoration: whiteInputDecoration("Amount (e.g. 5 packs)"),
                       style: TextStyle(color: Colors.white),
                       validator: (value) =>
-                      value == null || value.trim().isEmpty ? "Amount is required" : null,
+                      value == null || value.trim().isEmpty
+                          ? "Amount is required"
+                          : null,
                     ),
                     TextFormField(
                       controller: foodItemController,
                       decoration: whiteInputDecoration("Food Item"),
                       style: TextStyle(color: Colors.white),
                       validator: (value) =>
-                      value == null || value.trim().isEmpty ? "Food item is required" : null,
+                      value == null || value.trim().isEmpty
+                          ? "Food item is required"
+                          : null,
                     ),
                     DropdownButtonFormField<String>(
                       dropdownColor: Colors.black87,
@@ -159,10 +168,13 @@ class _DonorFormPageState extends State<DonorFormPage> {
                         });
                       },
                       items: ['Veg', 'NonVeg']
-                          .map((e) => DropdownMenuItem(
-                        child: Text(e, style: TextStyle(color: Colors.white)),
-                        value: e,
-                      ))
+                          .map(
+                            (e) => DropdownMenuItem(
+                          child: Text(e,
+                              style: TextStyle(color: Colors.white)),
+                          value: e,
+                        ),
+                      )
                           .toList(),
                       decoration: whiteInputDecoration("Type of Food"),
                       style: TextStyle(color: Colors.white),
@@ -198,6 +210,40 @@ class _DonorFormPageState extends State<DonorFormPage> {
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 1, // DonorFormPage is center
+        onTap: (index) {
+          switch (index) {
+            case 0: // Home
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => IntroPage()),
+              );
+              break;
+            case 1: // Settings
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()),
+              );
+              break;
+            case 2: // Logout
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+                    (Route<dynamic> route) => false,
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
+        ],
       ),
     );
   }
