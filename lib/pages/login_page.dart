@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_toastr/flutter_toastr.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/environment.dart';
 import 'food_donation_page.dart';
 import 'donor_form_page.dart';
-import 'user_verification_page.dart'; // Make sure this file exists
+import 'user_verification_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -12,19 +13,22 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   Future<void> login() async {
-    final url = Uri.parse('http://192.168.29.251:8080/api/fooddonation/login');
+    if (!_formKey.currentState!.validate()) return;
+
+    final url = Uri.parse('${Environment.baseUrl}/login');
 
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "email": emailController.text,
-          "password": passwordController.text,
+          "email": emailController.text.trim(),
+          "password": passwordController.text.trim(),
         }),
       );
 
@@ -84,6 +88,19 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Email is required';
+    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) return 'Enter a valid email';
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Password is required';
+    if (value.length < 6) return 'Password must be at least 6 characters';
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,50 +122,55 @@ class _LoginPageState extends State<LoginPage> {
               color: Colors.white.withOpacity(0.4),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Login',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(labelText: "Email"),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: "Password"),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: login,
-                  child: Text("Login"),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Login',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: "Email"),
+                    validator: _validateEmail,
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(labelText: "Password"),
+                    validator: _validatePassword,
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: login,
+                    child: Text("Login"),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  child: Text("Sign Up"),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 40),
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/signup');
+                    },
+                    child: Text("Sign Up"),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 40),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

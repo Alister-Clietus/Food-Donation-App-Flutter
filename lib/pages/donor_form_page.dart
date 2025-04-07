@@ -3,6 +3,8 @@ import 'package:flutter_toastr/flutter_toastr.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../config/environment.dart';
+
 class DonorFormPage extends StatefulWidget {
   final String email;
 
@@ -13,6 +15,7 @@ class DonorFormPage extends StatefulWidget {
 }
 
 class _DonorFormPageState extends State<DonorFormPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController foodItemController = TextEditingController();
@@ -20,14 +23,16 @@ class _DonorFormPageState extends State<DonorFormPage> {
   String statusMessage = '';
 
   Future<void> donateFood() async {
-    final url = Uri.parse('http://192.168.29.251:8080/api/fooddonation/donate');
+    if (!_formKey.currentState!.validate()) return;
+
+    final url = Uri.parse('${Environment.baseUrl}/donate');
 
     final body = jsonEncode({
       "email": widget.email,
-      "location": locationController.text,
-      "amount": amountController.text,
+      "location": locationController.text.trim(),
+      "amount": amountController.text.trim(),
       "vegOrNonVeg": vegOrNonVeg,
-      "foodItem": foodItemController.text,
+      "foodItem": foodItemController.text.trim(),
       "status": "Pending",
     });
 
@@ -103,83 +108,92 @@ class _DonorFormPageState extends State<DonorFormPage> {
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
           ),
           child: SingleChildScrollView(
-            child: DefaultTextStyle(
-              style: TextStyle(color: Colors.white),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Donate Food",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Email: ${widget.email}",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: locationController,
-                    decoration: whiteInputDecoration("Location"),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  TextField(
-                    controller: amountController,
-                    decoration: whiteInputDecoration("Amount (e.g. 5 packs)"),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  TextField(
-                    controller: foodItemController,
-                    decoration: whiteInputDecoration("Food Item"),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  DropdownButtonFormField<String>(
-                    dropdownColor: Colors.black87,
-                    value: vegOrNonVeg,
-                    onChanged: (value) {
-                      setState(() {
-                        vegOrNonVeg = value!;
-                      });
-                    },
-                    items: ['Veg', 'NonVeg']
-                        .map((e) => DropdownMenuItem(
-                      child: Text(e, style: TextStyle(color: Colors.white)),
-                      value: e,
-                    ))
-                        .toList(),
-                    decoration: whiteInputDecoration("Type of Food"),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: donateFood,
-                    child: Text("Submit Donation"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white),
-                      minimumSize: Size(double.infinity, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  if (statusMessage.isNotEmpty) ...[
-                    SizedBox(height: 20),
+            child: Form(
+              key: _formKey,
+              child: DefaultTextStyle(
+                style: TextStyle(color: Colors.white),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      statusMessage,
+                      "Donate Food",
                       style: TextStyle(
-                        color: statusMessage.contains("success")
-                            ? Colors.greenAccent
-                            : Colors.redAccent,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ]
-                ],
+                    SizedBox(height: 10),
+                    Text(
+                      "Email: ${widget.email}",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    SizedBox(height: 20),
+                    TextFormField(
+                      controller: locationController,
+                      decoration: whiteInputDecoration("Location"),
+                      style: TextStyle(color: Colors.white),
+                      validator: (value) =>
+                      value == null || value.trim().isEmpty ? "Location is required" : null,
+                    ),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: whiteInputDecoration("Amount (e.g. 5 packs)"),
+                      style: TextStyle(color: Colors.white),
+                      validator: (value) =>
+                      value == null || value.trim().isEmpty ? "Amount is required" : null,
+                    ),
+                    TextFormField(
+                      controller: foodItemController,
+                      decoration: whiteInputDecoration("Food Item"),
+                      style: TextStyle(color: Colors.white),
+                      validator: (value) =>
+                      value == null || value.trim().isEmpty ? "Food item is required" : null,
+                    ),
+                    DropdownButtonFormField<String>(
+                      dropdownColor: Colors.black87,
+                      value: vegOrNonVeg,
+                      onChanged: (value) {
+                        setState(() {
+                          vegOrNonVeg = value!;
+                        });
+                      },
+                      items: ['Veg', 'NonVeg']
+                          .map((e) => DropdownMenuItem(
+                        child: Text(e, style: TextStyle(color: Colors.white)),
+                        value: e,
+                      ))
+                          .toList(),
+                      decoration: whiteInputDecoration("Type of Food"),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: donateFood,
+                      child: Text("Submit Donation"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: Colors.white),
+                        minimumSize: Size(double.infinity, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    if (statusMessage.isNotEmpty) ...[
+                      SizedBox(height: 20),
+                      Text(
+                        statusMessage,
+                        style: TextStyle(
+                          color: statusMessage.contains("success")
+                              ? Colors.greenAccent
+                              : Colors.redAccent,
+                        ),
+                      ),
+                    ]
+                  ],
+                ),
               ),
             ),
           ),

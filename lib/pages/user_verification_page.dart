@@ -3,6 +3,8 @@ import 'package:flutter_toastr/flutter_toastr.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../config/environment.dart';
+
 class UserVerificationPage extends StatefulWidget {
   @override
   _UserVerificationPageState createState() => _UserVerificationPageState();
@@ -19,7 +21,7 @@ class _UserVerificationPageState extends State<UserVerificationPage> {
   }
 
   Future<void> fetchUsers() async {
-    final url = Uri.parse('http://192.168.29.251:8080/api/fooddonation/users');
+    final url = Uri.parse('${Environment.baseUrl}/users');
 
     try {
       final response = await http.get(url);
@@ -45,7 +47,7 @@ class _UserVerificationPageState extends State<UserVerificationPage> {
   }
 
   Future<void> verifyUser(String email) async {
-    final url = Uri.parse('http://192.168.29.251:8080/api/fooddonation/updateStatus/$email');
+    final url = Uri.parse('${Environment.baseUrl}/updateStatus/$email');
 
     try {
       final response = await http.put(url);
@@ -72,7 +74,7 @@ class _UserVerificationPageState extends State<UserVerificationPage> {
   }
 
   Future<void> deleteUser(String email) async {
-    final url = Uri.parse('http://192.168.29.251:8080/api/fooddonation/deleteUser/$email');
+    final url = Uri.parse('${Environment.baseUrl}/deleteUser/$email');
 
     try {
       final response = await http.delete(url);
