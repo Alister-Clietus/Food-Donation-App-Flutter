@@ -48,7 +48,7 @@ class _DonorFormPageState extends State<DonorFormPage> {
 
       final responseData = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && responseData['code'] == 'SUCCESS') {
+      if (responseData['code'] == 'SUCCESS') {
         FlutterToastr.show(
           responseData['message'] ?? "Donation successful!",
           context,
